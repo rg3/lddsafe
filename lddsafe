@@ -26,7 +26,6 @@ checkreadable() {
 
 # Check needed programs.
 checkexec /usr/bin/objdump
-checkexec /bin/awk
 checkexec /bin/cat
 checkexec /bin/tr
 checkexec /bin/grep
