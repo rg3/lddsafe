@@ -1,0 +1,99 @@
+#!/bin/bash
+#
+# lddsafe - Safely print shared library dependencies (similar to ldd).
+# Author: Ricardo Garcia Gonzalez.
+# License: Public domain code.
+#
+
+# Better for grep and expected output of other tools.
+export LANG=C
+
+# Check file exists and is executable.
+checkexec() {
+	if [ ! -x "$1" ]; then
+		echo "ERROR: $1 missing or not executable" 1>&2
+		exit 1
+	fi
+}
+
+# Check file exists and is readable.
+checkreadable() {
+	if [ ! -r "$1" ]; then
+		echo "ERROR: $1 missing or not readable" 1>&2
+		exit 1
+	fi
+}
+
+# Check needed programs.
+checkexec /usr/bin/objdump
+checkexec /bin/awk
+checkexec /bin/cat
+checkexec /bin/tr
+checkexec /bin/grep
+checkexec /bin/cut
+
+# Check needed files.
+checkreadable /etc/ld.so.conf
+
+# Check arguments.
+if [ $# -eq 0 ]; then
+	echo "Usage: $( basename $0 ) FILE..." 2>&1
+	exit 1
+fi
+for arg in "$@"; do
+	checkexec "$1"
+done
+
+# Library directories.
+libdirs="$( echo /lib /usr/lib && \
+            /bin/cat /etc/ld.so.conf && \
+	    /bin/tr : ' ' <<<$LD_LIBRARY_PATH )"
+
+# Search for a given library name.
+searchlib() {
+	found=0
+	for libdir in $libdirs; do
+		path="$libdir"/"$1"
+		if [ -x "$path" ]; then
+			found=1
+			break
+		fi
+	done
+	if [ $found -eq 1 ]; then
+		echo "$path"
+	fi
+}
+
+# Already visited libraries.
+declare -A visitedlibs
+
+# Print dependency results, recursively.
+recursivedeps() {
+	for lib in $( /usr/bin/objdump -p "$1" | \
+			/bin/grep '^  NEEDED ' | cut -c24- ); do
+		if [ ! "${visitedlibs[$lib]}" ]; then
+			visitedlibs["$lib"]=1
+			file=`searchlib "$lib"`
+			if [ "$file" ]; then
+				echo "	$lib => $file"
+				recursivedeps "$file"
+			else
+				echo "	$lib => not found"
+			fi
+		fi
+	done
+}
+
+# Search symbol names in library directories.
+for arg in "$@"; do
+	# Print file name when more than one file given.
+	if [ $# -gt 1 ]; then
+		echo "${arg}:"
+	fi
+
+	# Get a unique list of library dependencies for this argument.
+	unset visitedlibs
+	declare -A visitedlibs
+	recursivedeps "$arg"
+done
+exit 0
