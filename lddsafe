@@ -35,8 +35,14 @@ checkexec /bin/cut
 checkreadable /etc/ld.so.conf
 
 # Check arguments.
+if [ "$1" == "-n" ]; then
+	recursive=no
+	shift
+else
+	recursive=yes
+fi
 if [ $# -eq 0 ]; then
-	echo "Usage: $( basename $0 ) FILE..." 2>&1
+	echo "Usage: $( basename $0 ) [-n] FILE..." 2>&1
 	exit 1
 fi
 for arg in "$@"; do
@@ -75,7 +81,9 @@ recursivedeps() {
 			file=`searchlib "$lib"`
 			if [ "$file" ]; then
 				echo "	$lib => $file"
-				recursivedeps "$file"
+				if [ "$recursive" == "yes" ]; then
+					recursivedeps "$file"
+				fi
 			else
 				echo "	$lib => not found"
 			fi
