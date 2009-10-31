@@ -2,9 +2,17 @@ h1. NAME
 
 lddsafe -- Safely print shared library dependencies (similar to ldd)
 
+h1. SYNOPSIS
+
+lddsafe [-n] FILE ...
+
 h1. DESCRIPTION
 
 @lddsafe@ is a shell script written for Linux distributions (tested under Slackware Linux) that prints shared library dependencies for executable files and shared libraries, similar to @ldd@. However, it uses @objdump@ instead of loading the program, hence avoiding the security problems of @ldd@.
+
+h1. OPTIONS
+
+-n Nonrecursive mode. List direct dependencies only.
 
 h1. REQUIREMENTS
 
@@ -12,4 +20,4 @@ The most notable requirement of @lddsafe@ is that it needs @bash@ version 4 or l
 
 h1. BUG REPORTS
 
-Please, do not hesitate to point out possible improvements and ways to make the script work on systems which it currently may not work.
+Please, do not hesitate to use the issue tracker to point out possible improvements and ways to make the script work on systems which it currently may not work on.
