@@ -16,6 +16,12 @@ die()
 	exit 1
 }
 
+# Find required program.
+findexec()
+{
+	which "$1" || die "$1 not found"
+}
+
 # Check file exists and is executable.
 checkexec()
 {
@@ -33,11 +39,11 @@ checkreadable()
 [ ${BASH_VERSINFO[0]} -ge 4 ] || die "Bash version 4 or later required"
 
 # Check needed programs.
-checkexec /usr/bin/objdump
-checkexec /bin/cat
-checkexec /bin/tr
-checkexec /bin/grep
-checkexec /bin/cut
+OBJDUMP=$( findexec objdump )
+CAT=$( findexec cat )
+TR=$( findexec tr )
+GREP=$( findexec grep )
+CUT=$( findexec cut )
 
 # Check needed files.
 checkreadable /etc/ld.so.conf
@@ -59,8 +65,8 @@ done
 
 # Library directories.
 libdirs="$( echo /lib /lib64 /usr/lib /usr/lib64 && \
-            /bin/cat /etc/ld.so.conf && \
-	    /bin/tr : ' ' <<<$LD_LIBRARY_PATH )"
+	    $CAT /etc/ld.so.conf && \
+	    $TR : ' ' <<<$LD_LIBRARY_PATH )"
 
 # Search for a given library name.
 searchlib()
@@ -82,8 +88,8 @@ declare -A visitedlibs
 # Print dependency results, recursively.
 recursivedeps()
 {
-	for lib in $( /usr/bin/objdump -p "$1" | \
-			/bin/grep '^  NEEDED ' | cut -c24- ); do
+	for lib in $( $OBJDUMP -p "$1" | \
+			$GREP '^  NEEDED ' | $CUT -c24- ); do
 		if [ ! "${visitedlibs[$lib]}" ]; then
 			visitedlibs["$lib"]=1
 			file=`searchlib "$lib"`
