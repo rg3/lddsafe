@@ -26,6 +26,10 @@ checkreadable()
 	fi
 }
 
+# Check for bash version.
+[ -n "$BASH_VERSION" ] || die "Bash required"
+[ ${BASH_VERSINFO[0]} -ge 4 ] || die "Bash version 4 or later required"
+
 # Check needed programs.
 checkexec /usr/bin/objdump
 checkexec /bin/cat
