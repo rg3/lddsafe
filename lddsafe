@@ -9,7 +9,8 @@
 export LANG=C
 
 # Check file exists and is executable.
-checkexec() {
+checkexec()
+{
 	if [ ! -x "$1" ]; then
 		echo "ERROR: $1 missing or not executable" 1>&2
 		exit 1
@@ -17,7 +18,8 @@ checkexec() {
 }
 
 # Check file exists and is readable.
-checkreadable() {
+checkreadable()
+{
 	if [ ! -r "$1" ]; then
 		echo "ERROR: $1 missing or not readable" 1>&2
 		exit 1
@@ -55,7 +57,8 @@ libdirs="$( echo /lib /usr/lib && \
 	    /bin/tr : ' ' <<<$LD_LIBRARY_PATH )"
 
 # Search for a given library name.
-searchlib() {
+searchlib()
+{
 	found=0
 	for libdir in $libdirs; do
 		path="$libdir"/"$1"
@@ -73,7 +76,8 @@ searchlib() {
 declare -A visitedlibs
 
 # Print dependency results, recursively.
-recursivedeps() {
+recursivedeps()
+{
 	for lib in $( /usr/bin/objdump -p "$1" | \
 			/bin/grep '^  NEEDED ' | cut -c24- ); do
 		if [ ! "${visitedlibs[$lib]}" ]; then
