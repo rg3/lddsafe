@@ -52,7 +52,7 @@ for arg in "$@"; do
 done
 
 # Library directories.
-libdirs="$( echo /lib /usr/lib && \
+libdirs="$( echo /lib /lib64 /usr/lib /usr/lib64 && \
             /bin/cat /etc/ld.so.conf && \
 	    /bin/tr : ' ' <<<$LD_LIBRARY_PATH )"
 
