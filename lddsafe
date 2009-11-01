@@ -8,22 +8,23 @@
 # Better for grep and expected output of other tools.
 export LANG=C
 
+# Print error and exit.
+die()
+{
+	echo "ERROR: $1" 1>&2
+	exit 1
+}
+
 # Check file exists and is executable.
 checkexec()
 {
-	if [ ! -x "$1" ]; then
-		echo "ERROR: $1 missing or not executable" 1>&2
-		exit 1
-	fi
+	[ -x "$1" ] || die "$1 missing or not executable"
 }
 
 # Check file exists and is readable.
 checkreadable()
 {
-	if [ ! -r "$1" ]; then
-		echo "ERROR: $1 missing or not readable" 1>&2
-		exit 1
-	fi
+	[ -r "$1" ] || die "$1 missing or not readable"
 }
 
 # Check for bash version.
@@ -42,10 +43,10 @@ checkreadable /etc/ld.so.conf
 
 # Check arguments.
 if [ "$1" == "-n" ]; then
-	recursive=no
+	recursive=0
 	shift
 else
-	recursive=yes
+	recursive=1
 fi
 if [ $# -eq 0 ]; then
 	echo "Usage: $( basename $0 ) [-n] FILE..." 2>&1
@@ -71,9 +72,7 @@ searchlib()
 			break
 		fi
 	done
-	if [ $found -eq 1 ]; then
-		echo "$path"
-	fi
+	[ $found -eq 1 ] && echo "$path"
 }
 
 # Already visited libraries.
@@ -89,9 +88,7 @@ recursivedeps()
 			file=`searchlib "$lib"`
 			if [ "$file" ]; then
 				echo "	$lib => $file"
-				if [ "$recursive" == "yes" ]; then
-					recursivedeps "$file"
-				fi
+				[ $recursive -eq 1 ] && recursivedeps "$file"
 			else
 				echo "	$lib => not found"
 			fi
