@@ -2,6 +2,7 @@
 #
 # lddsafe - Safely print shared library dependencies (similar to ldd).
 # Author: Ricardo Garcia Gonzalez.
+# Author: Ivan Mironov.
 # License: Public domain code.
 #
 
