@@ -42,8 +42,7 @@ checkreadable()
 OBJDUMP=$( findexec objdump )
 CAT=$( findexec cat )
 TR=$( findexec tr )
-GREP=$( findexec grep )
-CUT=$( findexec cut )
+SED=$( findexec sed )
 
 # Check needed files.
 checkreadable /etc/ld.so.conf
@@ -89,7 +88,7 @@ declare -A visitedlibs
 recursivedeps()
 {
 	for lib in $( $OBJDUMP -p "$1" | \
-			$GREP '^  NEEDED ' | $CUT -c24- ); do
+			$SED -n 's,^ *NEEDED \+\([^ ]\+\) *$,\1,p' ); do
 		if [ ! "${visitedlibs[$lib]}" ]; then
 			visitedlibs["$lib"]=1
 			file=`searchlib "$lib"`
