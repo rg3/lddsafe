@@ -39,6 +39,7 @@ checkreadable()
 [ ${BASH_VERSINFO[0]} -ge 4 ] || die "Bash version 4 or later required"
 
 # Check needed programs.
+findexec which >/dev/null
 OBJDUMP=$( findexec objdump )
 CAT=$( findexec cat )
 TR=$( findexec tr )
