@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # lddsafe - Safely print shared library dependencies (similar to ldd).
 # Author: Ricardo Garcia Gonzalez.
