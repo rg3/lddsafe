@@ -19,7 +19,7 @@ die()
 # Find required program.
 findexec()
 {
-	which "$1" || die "$1 not found"
+	which "$1" 2>/dev/null || die "$1 not found"
 }
 
 # Check file exists and is executable.
