@@ -106,9 +106,7 @@ recursivedeps()
 # Search symbol names in library directories.
 for arg in "$@"; do
 	# Print file name when more than one file given.
-	if [ $# -gt 1 ]; then
-		echo "${arg}:"
-	fi
+	[ $# -gt 1 ] && echo "${arg}:"
 
 	# Get a unique list of library dependencies for this argument.
 	unset visitedlibs
