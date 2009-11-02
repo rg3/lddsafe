@@ -49,12 +49,8 @@ SED=$( findexec sed )
 checkreadable /etc/ld.so.conf
 
 # Check arguments.
-if [ "$1" == "-n" ]; then
-	recursive=0
-	shift
-else
-	recursive=1
-fi
+[ "$1" == "-n" ] && recursive=0 || recursive=1
+[ "$1" == "-n" ] && shift
 if [ $# -eq 0 ]; then
 	echo "Usage: $( basename $0 ) [-n] FILE..." 2>&1
 	exit 1
