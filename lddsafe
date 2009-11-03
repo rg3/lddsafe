@@ -61,14 +61,14 @@ for arg in "$@"; do
 done
 
 # Additional library directories.
-morelibdirs="$( $CAT /etc/ld.so.conf && \
+MORELIBDIRS="$( $CAT /etc/ld.so.conf && \
 		$TR : ' ' <<<$LD_LIBRARY_PATH )"
 
 # Search for a given library name.
 searchlib()
 {
 	found=0
-	for libdir in $libdirs; do
+	for libdir in $LIBDIRS; do
 		path="$libdir"/"$1"
 		if [ -x "$path" ]; then
 			found=1
@@ -79,15 +79,15 @@ searchlib()
 }
 
 # Already visited libraries.
-declare -A visitedlibs
+declare -A VISITEDLIBS
 
 # Print dependency results, recursively.
 recursivedeps()
 {
 	for lib in $( $OBJDUMP -p "$1" | \
 			$SED -n 's,^ *NEEDED \+\([^ ]\+\) *$,\1,p' ); do
-		if [ ! "${visitedlibs[$lib]}" ]; then
-			visitedlibs["$lib"]=1
+		if [ ! "${VISITEDLIBS[$lib]}" ]; then
+			VISITEDLIBS["$lib"]=1
 			file=`searchlib "$lib"`
 			if [ "$file" ]; then
 				echo "	$lib => $file"
@@ -128,11 +128,11 @@ for arg in "$@"; do
 			stdlibs="/lib /usr/lib"
 		fi
 	fi
-	libdirs="$stdlibs $morelibdirs"
+	LIBDIRS="$stdlibs $MORELIBDIRS"
 
 	# Get a unique list of library dependencies for this argument.
-	unset visitedlibs
-	declare -A visitedlibs
+	unset VISITEDLIBS
+	declare -A VISITEDLIBS
 	recursivedeps "$arg"
 done
 exit 0
