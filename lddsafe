@@ -41,6 +41,7 @@ checkreadable()
 # Check needed programs.
 findexec which >/dev/null
 OBJDUMP=$( findexec objdump )
+READELF=$( findexec readelf )
 CAT=$( findexec cat )
 TR=$( findexec tr )
 SED=$( findexec sed )
@@ -59,10 +60,9 @@ for arg in "$@"; do
 	checkexec "$1"
 done
 
-# Library directories.
-libdirs="$( echo /lib64 /lib /usr/lib64 /usr/lib && \
-	    $CAT /etc/ld.so.conf && \
-	    $TR : ' ' <<<$LD_LIBRARY_PATH )"
+# Additional library directories.
+morelibdirs="$( $CAT /etc/ld.so.conf && \
+		$TR : ' ' <<<$LD_LIBRARY_PATH )"
 
 # Search for a given library name.
 searchlib()
@@ -103,6 +103,32 @@ recursivedeps()
 for arg in "$@"; do
 	# Print file name when more than one file given.
 	[ $# -gt 1 ] && echo "${arg}:"
+
+	# Set appropriate library search directories.
+	class=$( $READELF -h $arg 2>/dev/null | \
+		 $SED -n 's/^[ \t]*Class:[\ \t]\+\(.\+\)/\1/p' )
+	if [ -z "$class" ]; then
+		echo "$arg: not an ELF file" 2>&1
+		continue
+	fi
+	if [ $class != ELF32 -a $class != ELF64 ]; then
+		echo "$arg: unknown ELF format" 2>&1
+		continue
+	fi
+	if [ $class == ELF64 ]; then
+		if [ -d /lib64 ]; then
+			stdlibs="/lib64 /usr/lib64"
+		else
+			stdlibs="/lib /usr/lib"
+		fi
+	else # $class == ELF32
+		if [ -d /lib32 ]; then
+			stdlibs="/lib32 /usr/lib32"
+		else
+			stdlibs="/lib /usr/lib"
+		fi
+	fi
+	libdirs="$stdlibs $morelibdirs"
 
 	# Get a unique list of library dependencies for this argument.
 	unset visitedlibs
