@@ -9,6 +9,9 @@
 # Better for grep and expected output of other tools.
 export LANG=C
 
+# Expand globs to nothing when no match is found.
+shopt -s nullglob
+
 # Print error and exit.
 die()
 {
@@ -44,6 +47,7 @@ OBJDUMP=$( findexec objdump )
 READELF=$( findexec readelf )
 CAT=$( findexec cat )
 TR=$( findexec tr )
+DIRNAME=$( findexec dirname )
 SED=$( findexec sed )
 
 # Check needed files.
@@ -60,8 +64,34 @@ for arg in "$@"; do
 	checkexec "$1"
 done
 
+# Recursively print the list of files included from /etc/ld.so.conf.
+ld_so_conf_deps()
+{
+	echo "$1"
+	dirname="$( $DIRNAME "$1" )"
+	patterns="$( $SED -n 's/^include[\ \t]\+\(.\+\)$/\1/p' "$1" )"
+	set -o noglob
+	for pattern in $patterns; do
+		set +o noglob
+		case $pattern in
+			/*)
+				for file in $pattern; do
+					ld_so_conf_deps "$file"
+				done
+				;;
+			*)
+				for file in $dirname/$pattern; do
+					ld_so_conf_deps "$file"
+				done
+				;;
+		esac
+	done
+	set +o noglob
+}
+
 # Additional library directories.
-MORELIBDIRS="$( $CAT /etc/ld.so.conf && \
+MORELIBDIRS="$( $CAT $( ld_so_conf_deps /etc/ld.so.conf ) | \
+		$SED '/^include[\ \t]/d' && \
 		$TR : ' ' <<<$LD_LIBRARY_PATH )"
 
 # Search for a given library name.
