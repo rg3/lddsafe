@@ -94,7 +94,7 @@ searchlib()
 	found=0
 	for libdir in $LIBDIRS; do
 		path="$libdir"/"$1"
-		if [ -x "$path" ]; then
+		if [ -r "$path" ]; then
 			found=1
 			break
 		fi
