@@ -84,9 +84,9 @@ ld_so_conf_deps()
 }
 
 # Additional library directories.
+LD_LIBRARY_PATH_LIBS="$( $TR : ' ' <<<$LD_LIBRARY_PATH )"
 MORELIBDIRS="$( $CAT $( ld_so_conf_deps /etc/ld.so.conf ) | \
-		$SED '/^include[\ \t]/d' && \
-		$TR : ' ' <<<$LD_LIBRARY_PATH )"
+		$SED '/^include[\ \t]/d' )"
 
 # Search for a given library name.
 searchlib()
@@ -152,7 +152,7 @@ for arg in "$@"; do
 			stdlibs="/lib /usr/lib"
 		fi
 	fi
-	LIBDIRS="$stdlibs $MORELIBDIRS"
+	LIBDIRS="$LD_LIBRARY_PATH_LIBS $MORELIBDIRS $stdlibs"
 
 	# Get a unique list of library dependencies for this argument.
 	unset VISITEDLIBS
