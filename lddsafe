@@ -22,7 +22,7 @@ die()
 # Find required program.
 findexec()
 {
-	which "$1" 2>/dev/null || die "$1 not found"
+	which "$1" >/dev/null 2>/dev/null || die "$1 not found"
 }
 
 # Check file exists and is readable.
@@ -36,13 +36,10 @@ checkreadable()
 [ ${BASH_VERSINFO[0]} -ge 4 ] || die "Bash version 4 or later required"
 
 # Check needed programs.
-findexec which >/dev/null
-OBJDUMP=$( findexec objdump )
-READELF=$( findexec readelf )
-CAT=$( findexec cat )
-TR=$( findexec tr )
-DIRNAME=$( findexec dirname )
-SED=$( findexec sed )
+findexec objdump
+findexec readelf
+findexec dirname
+findexec sed
 
 # Check needed files.
 checkreadable /etc/ld.so.conf
@@ -62,8 +59,8 @@ done
 ld_so_conf_deps()
 {
 	echo "$1"
-	dirname="$( $DIRNAME "$1" )"
-	patterns="$( $SED -n 's/^include[\ \t]\+\(.\+\)$/\1/p' "$1" )"
+	dirname="$( dirname "$1" )"
+	patterns="$( sed -n 's/^include[\ \t]\+\(.\+\)$/\1/p' "$1" )"
 	set -o noglob
 	for pattern in $patterns; do
 		set +o noglob
@@ -84,9 +81,8 @@ ld_so_conf_deps()
 }
 
 # Additional library directories.
-LD_LIBRARY_PATH_LIBS="$( $TR : ' ' <<<$LD_LIBRARY_PATH )"
-MORELIBDIRS="$( $CAT $( ld_so_conf_deps /etc/ld.so.conf ) | \
-		$SED '/^include[\ \t]/d' )"
+LD_LIBRARY_PATH_LIBS="${LD_LIBRARY_PATH//:/ }"
+MORELIBDIRS="$( sed '/^include[\ \t]/d' $( ld_so_conf_deps /etc/ld.so.conf ) )"
 
 # Search for a given library name.
 searchlib()
@@ -108,8 +104,8 @@ declare -A VISITEDLIBS
 # Print dependency results, recursively.
 recursivedeps()
 {
-	for lib in $( $OBJDUMP -p "$1" | \
-			$SED -n 's,^ *NEEDED \+\([^ ]\+\) *$,\1,p' ); do
+	for lib in $( objdump -p "$1" | \
+		      sed -n 's,^ *NEEDED \+\([^ ]\+\) *$,\1,p' ); do
 		if [ ! "${VISITEDLIBS[$lib]}" ]; then
 			VISITEDLIBS["$lib"]=1
 			file=`searchlib "$lib"`
@@ -129,8 +125,8 @@ for arg in "$@"; do
 	[ $# -gt 1 ] && echo "${arg}:"
 
 	# Set appropriate library search directories.
-	class=$( $READELF -h $arg 2>/dev/null | \
-		 $SED -n 's/^[ \t]*Class:[\ \t]\+\(.\+\)/\1/p' )
+	class=$( readelf -h $arg 2>/dev/null | \
+		 sed -n 's/^[ \t]*Class:[\ \t]\+\(.\+\)/\1/p' )
 	if [ -z "$class" ]; then
 		echo "$arg: not an ELF file" 2>&1
 		continue
